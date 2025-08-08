@@ -1,0 +1,1079 @@
+{
+	"info": {
+		"_postman_id": "ecbfca53-a51a-4b63-9667-d2397f09ce12",
+		"name": "Schedula - Doctor Appointment Booking API Copy",
+		"description": "Complete API collection for the Schedula Doctor Appointment Booking System. This collection includes all endpoints for authentication, doctor management, patient management, appointment booking, and scheduling operations.\n\n**Base URL:** http://localhost:3000\n\n**Authentication:** JWT Bearer Token (obtained from login endpoints)\n\n**User Roles:**\n- DOCTOR: Can manage their profile, availability, appointments, and scheduling\n- PATIENT: Can book appointments and manage their profile\n\n**NEW FEATURES - Data Consistency & Booking Window:**\n- ✅ Real-time slot status updates\n- ✅ Automatic capacity management\n- ✅ SOLID principles compliance\n- ✅ Consistent slot availability after moves/cancellations\n- ✅ Batch status updates for performance\n- ✅ Booking window validation (booking_start_at & booking_end_at)\n- ✅ DTO-accurate request bodies across all endpoints\n- ✅ Removed redundant endpoints for cleaner API structure\n\n**API Documentation Accuracy:**\n- ✅ All request bodies match backend DTOs exactly\n- ✅ CreateDoctorAvailabilityDto: consulting_start_time, consulting_end_time, session, weekdays, booking_start_at, booking_end_at\n- ✅ RescheduleAppointmentDto: appointment_id, new_timeslot_id, reason (slot-to-slot) | reschedule_type, appointment_ids, shift_minutes, reason (time-shift)\n- ✅ NewAppointmentDto: doctor_id, timeslot_id, reason, notes\n- ✅ UpdateDoctorDto & UpdatePatientDto: Proper validation for profile updates\n- ✅ Auth DTOs: All registration and login requests verified\n\n**Optimized Endpoint Structure:**\n- ✅ Removed redundant profile controller (use doctor/patient endpoints instead)\n- ✅ Removed duplicate slot creation endpoint\n- ✅ Clean separation between public and authenticated endpoints\n- ✅ Proper role-based access control throughout\n\n**Usage Instructions:**\n1. Start with Authentication endpoints to register and login\n2. Copy the JWT token from login response\n3. Set the token in Authorization header for protected endpoints\n4. Use appropriate role-based endpoints based on your user type\n5. Run Data Consistency Tests to verify slot management accuracy\n6. Test booking window validation with Data Consistency Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33874570"
+	},
+	"item": [
+		{
+			"name": "🏥 App Health Check",
+			"item": [
+				{
+					"name": "API Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Health check endpoint to verify API is running"
+					},
+					"response": []
+				}
+			],
+			"description": "Basic health check endpoints for API status verification"
+		},
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Register Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.user) {",
+									"        pm.environment.set('patient_id', response.data.user.user_id);",
+									"        console.log('Patient ID saved to environment: ' + response.data.user.user_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"John Doe\",\n  \"email\": \"patient1@example.com\",\n  \"password\": \"securepass123\",\n  \"phone\": \"+919876543210\",\n  \"role\": \"PATIENT\",\n  \"date_of_birth\": \"1990-05-15T00:00:00.000Z\",\n  \"gender\": \"Male\",\n  \"age\": 34,\n  \"address\": \"123 Main Street, Mumbai, Maharashtra\",\n  \"emergency_contact\": \"+919876543211\",\n  \"medical_history\": \"No major medical history\",\n  \"allergies\": \"None\",\n  \"current_medications\": \"None\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/patient/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"patient",
+								"register"
+							]
+						},
+						"description": "Register a new patient account with medical information"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Doctor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.user) {",
+									"        pm.environment.set('doctor_id', response.data.user.user_id);",
+									"        console.log('Doctor ID saved to environment: ' + response.data.user.user_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Dr. Sarah Smith\",\n  \"email\": \"dr@example.com\",\n  \"password\": \"doctorpass123\",\n  \"phone\": \"+919876543220\",\n  \"role\": \"DOCTOR\",\n  \"date_of_birth\": \"1980-03-20T00:00:00.000Z\",\n  \"gender\": \"Female\",\n  \"education\": \"MBBS, MD - Cardiology\",\n  \"specialization\": \"Cardiology\",\n  \"experience_years\": 12,\n  \"clinic_name\": \"Heart Care Clinic\",\n  \"clinic_address\": \"456 Medical Plaza, Bangalore, Karnataka\",\n  \"consultation_fee\": 800,\n  \"about\": \"Experienced cardiologist specializing in heart disease prevention and treatment\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/doctor/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"doctor",
+								"register"
+							]
+						},
+						"description": "Register a new doctor account with medical credentials"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"// Set the JWT token in the collection variable if the login is successful",
+									"if (response.access_token) {",
+									"    pm.collectionVariables.set(\"jwt_token\", response.access_token);",
+									"   pm.collectionVariables.set('user_id', response.user.user_id);",
+									"     pm.collectionVariables.set('user_role', response.user.role);",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"dr@example.com\",\n  \"password\": \"doctorpass123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login endpoint for both doctors and patients. Returns JWT token for authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Login user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"",
+									"// Set the JWT token in the collection variable if the login is successful",
+									"if (response.access_token) {",
+									"    pm.collectionVariables.set(\"jwt_token\", response.access_token);",
+									"   pm.collectionVariables.set('user_id', response.user.user_id);",
+									"     pm.collectionVariables.set('user_role', response.user.role);",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"patient1@example.com\",\n  \"password\": \"securepass123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login endpoint for both doctors and patients. Returns JWT token for authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logout endpoint for authenticated users"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration, login, and logout"
+		},
+		{
+			"name": "‍⚕️ Doctor Management",
+			"item": [
+				{
+					"name": "Get All Doctors (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/doctors",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors"
+							]
+						},
+						"description": "Public endpoint to get list of all registered doctors"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor Profile (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}"
+							]
+						},
+						"description": "Public endpoint to get detailed doctor profile by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Doctor Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"Dr. Sarah Smith Updated\",\n  \"phone\": \"+919876543221\",\n  \"specialization\": \"Advanced Cardiology\",\n  \"experience_years\": 13,\n  \"consultation_fee\": 1000,\n  \"about\": \"Updated bio with latest achievements and certifications\",\n  \"clinic_name\": \"Heart Care Clinic Premium\",\n  \"clinic_address\": \"New premium location in Medical Plaza\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}"
+							]
+						},
+						"description": "Update doctor's profile (only own profile)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctor Slots",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/slots",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"slots"
+							]
+						},
+						"description": "Get all available time slots for a doctor"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Time Slot",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/slots/{{slot_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"slots",
+								"{{slot_id}}"
+							]
+						},
+						"description": "Delete a time slot (doctor only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Doctor management endpoints for profiles and availability"
+		},
+		{
+			"name": "📅 Doctor Availability & Scheduling",
+			"item": [
+				{
+					"name": "Create Availability",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.availability_id) {",
+									"        pm.environment.set('availability_id', response.data.availability_id);",
+									"        console.log('Availability ID saved to environment: ' + response.data.availability_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"date\": \"2025-08-15T00:00:00.000Z\",\n  \"consulting_start_time\": \"09:00\",\n  \"consulting_end_time\": \"17:00\",\n  \"session\": \"morning\",\n  \"weekdays\": [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\"],\n  \"booking_start_at\": \"2025-08-06T00:00:00.000Z\",\n  \"booking_end_at\": \"2025-08-14T23:59:59.000Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/availability",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"availability"
+							]
+						},
+						"description": "Create availability window for doctor (doctor only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Time Slot in Availability",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.timeslot_id) {",
+									"        pm.environment.set('slot_id', response.data.timeslot_id);",
+									"        console.log('Slot ID saved to environment: ' + response.data.timeslot_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"availability_id\": {{availability_id}},\n  \"start_time\": \"12:00\",\n  \"end_time\": \"12:30\",\n  \"max_patients\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/timeslot",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"timeslot"
+							]
+						},
+						"description": "Create individual time slot within availability (doctor only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Schedule Type",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schedule_type\": \"WAVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/schedule_type",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"schedule_type"
+							]
+						},
+						"description": "Update doctor's schedule type (STREAM or WAVE)"
+					},
+					"response": []
+				},
+				{
+					"name": "Unified Reschedule - Slot to Slot",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"availability_id\": {{availability_id}},\n  \"scheduling_type\": \"slot_slot\",\n  \"source_slot_id\": {{slot_id}},\n  \"target_slot_id\": 1,\n  \"appointment_id\": {{appointment_id}},\n  \"reason\": \"Doctor emergency, moving appointment to later slot\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"reschedule"
+							]
+						},
+						"description": "Move specific appointment between time slots"
+					},
+					"response": []
+				},
+				{
+					"name": "Unified Reschedule - Time Shift",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"availability_id\": {{availability_id}},\n  \"scheduling_type\": \"time_shift\",\n  \"new_start_time\": \"15:30\",\n  \"new_end_time\": \"16:30\",\n  \"reason\": \"Clinic opening delayed by 1.5 hours\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"reschedule"
+							]
+						},
+						"description": "Shift entire schedule by time offset"
+					},
+					"response": []
+				},
+				{
+					"name": "Unified Reschedule - Time Shift",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"availability_id\": {{availability_id}},\n  \"scheduling_type\": \"shrinking\",\n  \"new_start_time\": \"11:00\",\n  \"new_end_time\": \"14:30\",\n  \"reason\": \"Reducing clinic hours due to personal commitment\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"reschedule"
+							]
+						},
+						"description": "Shrink schedule from both start and end times"
+					},
+					"response": []
+				},
+				{
+					"name": "Unified Reschedule - Shrinking (Start Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"availability_id\": {{availability_id}},\n  \"scheduling_type\": \"shrinking\",\n  \"new_start_time\": \"12:00\",\n  \"reason\": \"Late start due to morning meeting\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"reschedule"
+							]
+						},
+						"description": "Shrink schedule from start time only"
+					},
+					"response": []
+				},
+				{
+					"name": "Unified Reschedule - Shrinking (End Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"availability_id\": {{availability_id}},\n  \"scheduling_type\": \"shrinking\",\n  \"new_end_time\": \"14:00\",\n  \"reason\": \"Early closing for emergency\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								"reschedule"
+							]
+						},
+						"description": "Shrink schedule from end time only"
+					},
+					"response": []
+				}
+			],
+			"description": "Doctor availability creation and advanced scheduling operations"
+		},
+		{
+			"name": "🏥 Patient Management",
+			"item": [
+				{
+					"name": "Get Patient Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/patients/{{patient_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								"{{patient_id}}"
+							]
+						},
+						"description": "Get patient profile (patient can only view own profile)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Patient Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"John Doe Updated\",\n  \"phone\": \"+919876543299\",\n  \"age\": 35,\n  \"address\": \"456 New Address, Delhi NCR, India\",\n  \"emergency_contact\": \"+919876543300\",\n  \"medical_history\": \"Updated medical history: Previous surgery in 2020, regular checkups since then\",\n  \"allergies\": \"Peanuts, shellfish, dust mites\",\n  \"current_medications\": \"Vitamin D3 1000IU daily, Calcium supplements, Omega-3\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/patients/{{patient_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								"{{patient_id}}"
+							]
+						},
+						"description": "Update patient profile (patient can only update own profile)"
+					},
+					"response": []
+				}
+			],
+			"description": "Patient profile management endpoints"
+		},
+		{
+			"name": "📅 Appointment Management",
+			"item": [
+				{
+					"name": "View Appointments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments"
+							]
+						},
+						"description": "Get appointments for authenticated user (different view for doctors vs patients)"
+					},
+					"response": []
+				},
+				{
+					"name": "View Appointments by Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments?status=CONFIRMED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CONFIRMED",
+									"description": "Filter by status: PENDING, CONFIRMED, CANCELLED, COMPLETED"
+								}
+							]
+						},
+						"description": "Filter appointments by status"
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.appointment_id) {",
+									"        pm.environment.set('appointment_id', response.data.appointment_id);",
+									"        console.log('Appointment ID saved to environment: ' + response.data.appointment_id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"doctor_id\": {{doctor_id}},\n  \"timeslot_id\": {{slot_id}},\n  \"reason\": \"Regular checkup and blood pressure monitoring\",\n  \"notes\": \"Patient reports occasional headaches\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/new",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"new"
+							]
+						},
+						"description": "Book new appointment (patients only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Appointment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"{{appointment_id}}",
+								"cancel"
+							]
+						},
+						"description": "Cancel appointment (both patients and doctors can cancel)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reschedule Appointment - Slot to Slot",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"appointment_id\": {{appointment_id}},\n  \"new_timeslot_id\": {{slot_id}},\n  \"reason\": \"Patient requested different time\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"reschedule"
+							]
+						},
+						"description": "Reschedule appointment to different slot (doctors only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reschedule Appointment - Time Shift",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reschedule_type\": \"postpone\",\n  \"appointment_ids\": [{{appointment_id}}],\n  \"shift_minutes\": 30,\n  \"reason\": \"Doctor running 30 minutes late\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"reschedule"
+							]
+						},
+						"description": "Reschedule appointment by time shift (doctors only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Appointment booking, viewing, cancellation, and rescheduling endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log('Request started for: ' + pm.request.name);",
+					"console.log('Using base_url: ' + pm.collectionVariables.get('base_url'));"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script - runs after every request",
+					"pm.test('Response time is reasonable', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"pm.test('Response has proper headers', function () {",
+					"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+					"});",
+					"",
+					"// Log response for debugging",
+					"if (pm.response.code >= 400) {",
+					"    console.log('Error Response Body:', pm.response.text());",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_role",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "doctor_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "patient_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "availability_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "slot_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "appointment_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

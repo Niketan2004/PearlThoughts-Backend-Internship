@@ -18,6 +18,7 @@ coverage/
 *.lcov
 
 docs/
+deployment.txt
 # nyc test coverage
 .nyc_output
 

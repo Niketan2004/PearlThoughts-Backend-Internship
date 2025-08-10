@@ -1,358 +1,491 @@
-# 🏥 Schedula - Doctor Appointment Booking System Backend
+# 🏥 Schedula - Doctor Appointment Booking System
 
-[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)](https://jwt.io/)
+A comprehensive, enterprise-grade doctor appointment booking system backend built with **NestJS**, **TypeORM**, and **PostgreSQL**. The system features advanced scheduling operations, JWT-based authentication, role-based access control, and intelligent appointment management.
 
-A comprehensive, enterprise-grade doctor appointment booking system backend built with **NestJS**, **TypeORM**, and **PostgreSQL**. Features advanced scheduling operations, JWT authentication, role-based access control, and flexible appointment management with **FCFS (First Come First Serve)** rescheduling logic.
+## 🚀 Live Demo
 
-## ✨ Key Features
+- **🔗 Deployed Backend**: [https://pearlthoughts-backend-internship.onrender.com](https://pearlthoughts-backend-internship.onrender.com)
+- **📂 GitHub Repository**: [github.com/Niketan2004/PearlThoughts-Backend-Internship](https://github.com/Niketan2004/PearlThoughts-Backend-Internship)
+- **📋 Postman Collection**: Available in the repository root
 
-### 🔐 **Authentication & Authorization**
-- **JWT-based authentication** with refresh tokens
-- **Role-based access control** (Doctor, Patient, Admin)
-- **Secure password hashing** with bcrypt
-- **Protected routes** with custom guards and decorators
+## 📋 Table of Contents
 
-### 📅 **Unified Scheduling System**
-- **Single API Endpoint**: `/api/doctors/:doctorId/reschedule` for all scheduling operations
-- **Three scheduling operations**:
-  - **Slot-to-Slot Movement**: Move appointments between time slots
-  - **Time Shift**: Bulk time adjustments for all appointments  
-  - **Schedule Shrinking**: Reduce availability with automatic rescheduling
-- **FCFS Rescheduling Logic**: Automatic appointment redistribution
-- **Stream vs Wave Scheduling**: Flexible appointment scheduling modes
-- **Simple parameter-based operations**: Direct time checking instead of complex enums
-- **Real-time availability management**
+- [Features](#-features)
+- [Technology Stack](#-technology-stack)
+- [System Architecture](#-system-architecture)
+- [Database Schema](#-database-schema)
+- [API Endpoints](#-api-endpoints)
+- [Installation & Setup](#-installation--setup)
+- [Environment Configuration](#-environment-configuration)
+- [API Testing with Postman](#-api-testing-with-postman)
+- [Usage Examples](#-usage-examples)
+- [Advanced Features](#-advanced-features)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
 
-### 👥 **User Management**
-- **Multi-role user system** (Doctors, Patients)
-- **Comprehensive profile management**
-- **Doctor specialization and credentials**
-- **Patient medical history tracking**
+## ✨ Features
 
-### 🗄️ **Database Architecture**
-- **TypeORM integration** with PostgreSQL
-- **Single migration** for complete schema setup
-- **Optimized queries** with relations and indexing
-- **Data validation** with class-validator
-- **Clean migration history** with simplified structure
+### 🔐 Authentication & Authorization
+- **JWT-based Authentication** with secure token management
+- **Role-based Access Control** (Doctor, Patient)
+- **Password Encryption** using bcrypt
+- **Session Management** with token expiration
 
-## 📁 Project Structure
+### 👨‍⚕️ Doctor Management
+- **Profile Management** with medical credentials
+- **Availability Setting** with flexible scheduling
+- **Time Slot Management** with capacity control
+- **Advanced Rescheduling** operations
+
+### 👤 Patient Management
+- **Patient Registration** with medical history
+- **Profile Management** with personal information
+- **Appointment History** tracking
+- **Medical Records** management
+
+### 📅 Appointment System
+- **Smart Booking** with availability validation
+- **Real-time Slot Status** tracking
+- **Cancellation Management** with status updates
+- **Unified Rescheduling API** with multiple operation types
+
+### 🔄 Advanced Scheduling Operations
+- **Slot-to-Slot Movement**: Direct appointment transfers
+- **Time Shift Operations**: Bulk time adjustments
+- **Schedule Shrinking**: Comprehensive schedule reduction
+- **Capacity Management**: Real-time slot availability tracking
+
+## 🛠 Technology Stack
+
+| Category | Technology |
+|----------|------------|
+| **Backend Framework** | NestJS with TypeScript |
+| **Database** | PostgreSQL |
+| **ORM** | TypeORM |
+| **Authentication** | JWT (JSON Web Tokens) |
+| **Validation** | class-validator, class-transformer |
+| **Security** | bcrypt for password hashing |
+| **API Documentation** | Postman Collection |
+| **Deployment** | Render.com |
+
+## 🏗 System Architecture
+
+### Core Modules
 
 ```
-Schedula_Binary-Bandits_Backend/
-├── doctor-appointment-booking/          # Main NestJS Application
-│   ├── src/
-│   │   ├── auth/                       # 🔐 Authentication Module
-│   │   │   ├── decorators/             # Custom decorators
-│   │   │   │   ├── get-user.decorator.ts    # Extract user from JWT payload
-│   │   │   │   ├── public.decorator.ts      # Mark routes as public
-│   │   │   │   └── roles.decorator.ts       # Role-based access control
-│   │   │   ├── dto/                    # Authentication DTOs
-│   │   │   │   └── auth.dto.ts              # Login, registration DTOs
-│   │   │   ├── entities/               # User entities
-│   │   │   │   └── user.entity.ts           # Base user entity with profile getter
-│   │   │   ├── enums/                  # Authentication enums
-│   │   │   │   └── user.enums.ts            # UserRole, AccountStatus
-│   │   │   ├── guards/                 # Security guards
-│   │   │   │   ├── jwt-auth.guard.ts        # JWT token validation
-│   │   │   │   └── roles.guard.ts           # Role-based route protection
-│   │   │   ├── strategies/             # Passport strategies
-│   │   │   │   └── jwt.strategy.ts          # JWT strategy with user validation
-│   │   │   ├── auth.controller.ts      # Authentication endpoints
-│   │   │   ├── auth.service.ts         # Authentication logic & JWT handling
-│   │   │   └── auth.module.ts          # Auth module configuration
-│   │   │
-│   │   ├── doctors/                    # 👨‍⚕️ Doctor Management Module
-│   │   │   ├── dto/                    # Doctor-related DTOs
-│   │   │   │   ├── create-availability.dto.ts   # Doctor availability creation
-│   │   │   │   ├── create-timeslot.dto.ts       # Individual timeslot creation
-│   │   │   │   └── schedule-operations.dto.ts   # Unified scheduling operations DTO
-│   │   │   ├── entities/               # Doctor entities
-│   │   │   │   ├── doctor.entity.ts             # Doctor profile with specializations
-│   │   │   │   ├── doctor-availability.entity.ts # Doctor availability windows
-│   │   │   │   └── doctor-time-slot.entity.ts   # Individual appointment slots
-│   │   │   ├── enums/                  # Doctor-related enums
-│   │   │   │   ├── availability.enums.ts        # Availability statuses
-│   │   │   │   └── schedule-type.enums.ts       # STREAM vs WAVE scheduling
-│   │   │   ├── services/               # Business logic services
-│   │   │   │   └── schedule.service.ts          # Advanced scheduling operations service
-│   │   │   ├── doctor.controller.ts    # Doctor profile & basic operations
-│   │   │   ├── doctor.service.ts       # Doctor business logic
-│   │   │   └── doctor.module.ts        # Doctor module configuration
-│   │   │
-│   │   ├── patients/                   # 🏥 Patient Management Module
-│   │   │   ├── entities/               # Patient entities
-│   │   │   │   └── patient.entity.ts        # Patient profile entity
-│   │   │   ├── patient.controller.ts   # Patient profile endpoints
-│   │   │   ├── patient.service.ts      # Patient business logic
-│   │   │   └── patient.module.ts       # Patient module configuration
-│   │   │
-│   │   ├── appointments/               # 📋 Appointment Management Module
-│   │   │   ├── dto/                    # Appointment DTOs
-│   │   │   │   ├── new-appointment.dto.ts       # New appointment creation
-│   │   │   │   └── reschedule-appointment.dto.ts # Enhanced rescheduling
-│   │   │   ├── entities/               # Appointment entities
-│   │   │   │   └── appointment.entity.ts        # Core appointment entity
-│   │   │   ├── enums/                  # Appointment enums
-│   │   │   │   ├── appointment-status.enum.ts   # SCHEDULED, COMPLETED, CANCELLED
-│   │   │   │   └── reschedule-type.enum.ts      # POSTPONE, PREPONE
-│   │   │   ├── appointment.controller.ts # Appointment CRUD operations
-│   │   │   ├── appointment.service.ts  # Appointment business logic
-│   │   │   └── appointment.module.ts   # Appointment module configuration
-│   │   │
-│   │   ├── profile/                    # 👤 Universal Profile Module
-│   │   │   └── profile.controller.ts   # Cross-role profile endpoints
-│   │   │
-│   │   ├── migrations/                 # 🗄️ Database Migrations
-│   │   │   └── 1721158400000-CreateAppointmentSystem.ts # Complete schema creation
-│   │   │
-│   │   ├── app.controller.ts           # Root application controller
-│   │   ├── app.module.ts               # Main application module
-│   │   ├── app.service.ts              # Root application service
-│   │   ├── data-source.ts              # TypeORM configuration
-│   │   └── main.ts                     # Application bootstrap
-│   │
-│   ├── .env.example                    # 🔧 Environment Template
-│   ├── .gitignore                      # 📝 Git Ignore Rules
-│   ├── nest-cli.json                   # ⚙️ NestJS CLI Configuration
-│   ├── package.json                    # 📋 Project Dependencies & Scripts
-│   ├── tsconfig.json                   # 🔧 TypeScript Configuration
-│   └── tsconfig.build.json             # 🔧 Build TypeScript Configuration
-│
-└── README.md                           # 📖 This Documentation
+📦 Schedula Backend
+├── 🔐 Auth Module (JWT Authentication)
+├── 👨‍⚕️ Doctor Module (Profile & Scheduling)
+├── 👤 Patient Module (Profile Management)
+├── 📅 Appointment Module (Booking & Management)
+└── 🛠 Common Module (Utilities & Guards)
 ```
 
-## 🚀 Quick Start
+### Database Entities
+
+- **Users**: Base authentication entity
+- **Doctors**: Medical professional profiles
+- **Patients**: Patient information and medical history
+- **DoctorAvailability**: Doctor schedule and availability
+- **DoctorTimeSlot**: Individual time slots with capacity
+- **Appointments**: Booking records and status
+
+## 🗄 Database Schema
+
+### Entity Relationships
+
+```mermaid
+erDiagram
+    User ||--o{ Doctor : "user_id"
+    User ||--o{ Patient : "user_id"
+    Doctor ||--o{ DoctorAvailability : "doctor_id"
+    Doctor ||--o{ Appointment : "doctor_id"
+    DoctorAvailability ||--o{ DoctorTimeSlot : "availability_id"
+    DoctorTimeSlot ||--o{ Appointment : "time_slot_id"
+    Patient ||--o{ Appointment : "patient_id"
+```
+
+### Key Tables
+
+| Table | Purpose |
+|-------|---------|
+| `users` | Base user authentication and profile |
+| `doctors` | Doctor-specific profile and credentials |
+| `patients` | Patient medical information |
+| `doctor_availabilities` | Doctor schedule definitions |
+| `doctor_time_slots` | Individual bookable time slots |
+| `appointments` | Appointment bookings and status |
+
+## 🔌 API Endpoints
+
+### 🔐 Authentication Endpoints
+```http
+POST   /api/auth/patient/register     # Patient registration
+POST   /api/auth/doctor/register      # Doctor registration
+POST   /api/auth/login                # User login (both roles)
+POST   /api/auth/logout               # User logout
+```
+
+### 👨‍⚕️ Doctor Endpoints
+```http
+GET    /api/doctors                   # Get all doctors (public)
+GET    /api/doctors/:id               # Get doctor profile (public)
+PATCH  /api/doctors/:id               # Update doctor profile (auth)
+POST   /api/doctors/:id/availability  # Create availability (auth)
+GET    /api/doctors/:id/slots         # Get doctor time slots
+POST   /api/doctors/:id/slots         # Create time slots (auth)
+DELETE /api/doctors/:id/slots/:slotId # Delete time slot (auth)
+POST   /api/doctors/:doctorId/reschedule # Unified scheduling operations (auth)
+```
+
+### 👤 Patient Endpoints
+```http
+GET    /api/patients/:id              # Get patient profile (auth)
+PATCH  /api/patients/:id              # Update patient profile (auth)
+```
+
+### 📅 Appointment Endpoints
+```http
+GET    /api/v1/appointments           # Get appointments (auth)
+POST   /api/v1/appointments/new       # Book new appointment (auth)
+PATCH  /api/v1/appointments/:id/cancel # Cancel appointment (auth)
+PATCH  /api/v1/appointments/reschedule # Reschedule appointment (auth)
+```
+
+## 🚀 Installation & Setup
 
 ### Prerequisites
+- **Node.js** (v16 or higher)
+- **PostgreSQL** (v12 or higher)
+- **npm** or **yarn**
 
-- **Node.js** (v18 or higher)
-- **PostgreSQL** (v12 or higher) 
-- **npm** or **yarn** package manager
+### Local Development Setup
 
-### Installation
-
-1. **Clone the repository:**
+1. **Clone the Repository**
    ```bash
-   git clone https://github.com/PearlThoughtsInternship/Schedula_Binary-Bandits_Backend.git
-   cd Schedula_Binary-Bandits_Backend/doctor-appointment-booking
+   git clone https://github.com/Niketan2004/PearlThoughts-Backend-Internship.git
+   cd PearlThoughts-Backend-Internship/doctor-appointment-booking
    ```
 
-2. **Install dependencies:**
+2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. **Set up environment variables:**
+3. **Environment Setup**
    ```bash
    cp .env.example .env
-   ```
-   
-   Configure your `.env` file:
-   ```env
-   # Database Configuration
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_PGUSERNAME=your_postgres_username
-   DB_PGPASSWORD=your_postgres_password
-   DB_DATABASE=schedula_db
-   
-   # JWT Configuration
-   JWT_SECRET=your-super-secret-jwt-key
-   JWT_EXPIRES_IN=24h
-   
-   # Application Configuration
-   NODE_ENV=development
-   PORT=3000
+   # Edit .env with your database credentials
    ```
 
-4. **Set up the database:**
+4. **Database Setup**
    ```bash
-   # Create database
+   # Create PostgreSQL database
    createdb schedula_db
    
    # Run migrations
    npm run migration:run
    ```
 
-5. **Start the application:**
+5. **Start Development Server**
    ```bash
-   # Development mode with hot reload
    npm run start:dev
-   
-   # Production mode
-   npm run start:prod
    ```
 
-The application will be available at `http://localhost:3000`
+The server will start on `http://localhost:3000`
 
-## 🔧 Recent Improvements
+### Production Deployment
 
-### ✨ **Codebase Optimization (Latest Updates)**
-- **Unified API Endpoint**: Single `/reschedule` endpoint for all scheduling operations
-- **Simplified Shrinking Logic**: Direct parameter checking instead of complex enum-based logic
-- **Clean Migration Structure**: Single comprehensive migration for complete schema setup
-- **Removed Unused Code**: Eliminated redundant files, methods, and entities
-- **Simple Comments**: Clear, concise comments throughout the codebase
-- **Streamlined Architecture**: Reduced complexity while maintaining all functionality
+The application is deployed on **Render.com** with automatic deployments from the GitHub repository.
 
-### 🗑️ **Cleaned Up Files**
-- Removed unused DTOs and entities
-- Eliminated redundant migration files
-- Simplified data source configuration
-- Optimized package.json scripts
-- Updated documentation to reflect current structure
+## ⚙️ Environment Configuration
 
-## 🔌 API Endpoints
-
-### 🔐 Authentication Endpoints
-```http
-POST   /api/auth/patient/register    # Patient registration
-POST   /api/auth/doctor/register     # Doctor registration  
-POST   /api/auth/login               # User login
-POST   /api/auth/logout              # User logout
-```
-
-### 👨‍⚕️ Doctor Endpoints
-```http
-GET    /api/doctors                  # Get all doctors (public)
-GET    /api/doctors/:id              # Get doctor profile (public)
-PATCH  /api/doctors/:id              # Update doctor profile (auth)
-GET    /api/doctors/:id/slots        # Get doctor time slots
-POST   /api/doctors/:id/slots        # Create time slot (auth)
-DELETE /api/doctors/:id/slots/:slotId # Delete time slot (auth)
-POST   /api/doctors/availability     # Create availability (auth)
-POST   /api/doctors/timeslot         # Create timeslot (auth)
-POST   /api/doctors/:doctorId/reschedule # Unified scheduling operations (auth)
-```
-
-### 📅 Unified Scheduling Operations
-```http
-POST   /api/doctors/:doctorId/reschedule    # All scheduling operations in one endpoint
-```
-
-### 🏥 Patient Endpoints
-```http
-GET    /api/patients/:id             # Get patient profile
-PATCH  /api/patients/:id             # Update patient profile (auth)
-```
-
-### 📋 Appointment Endpoints
-```http
-GET    /api/v1/appointments          # Get appointments (auth)
-POST   /api/v1/appointments/new      # Book new appointment (auth)
-PATCH  /api/v1/appointments/:id/cancel # Cancel appointment (auth)
-PATCH  /api/v1/appointments/reschedule  # Reschedule appointment (auth)
-```
-
-### 👤 Profile Endpoints
-```http
-GET    /api/profile                  # Get user profile (auth)
-```
-
-## 📊 Unified Scheduling System
-
-### 🔄 Single Endpoint for All Operations
-
-The scheduling system now uses one unified endpoint that automatically determines the operation type based on the request body:
-
-```http
-POST /api/doctors/:doctorId/reschedule
-```
-
-#### 1. **Slot-to-Slot Movement**
-```json
-{
-  "availability_id": 1,
-  "scheduling_type": "slot_slot",
-  "source_slot_id": 10,
-  "target_slot_id": 15,
-  "appointment_id": 5,
-  "reason": "Patient requested different time"
-}
-```
-
-#### 2. **Time Shift Operations**
-```json
-{
-  "availability_id": 1,
-  "scheduling_type": "time_shift",
-  "new_start_time": "10:00",
-  "new_end_time": "18:00",
-  "shift_minutes": 30,
-  "reason": "Doctor schedule change"
-}
-```
-
-#### 3. **Schedule Shrinking with FCFS**
-```json
-{
-  "availability_id": 1,
-  "scheduling_type": "shrinking",
-  "new_start_time": "09:00",
-  "new_end_time": "17:00",
-  "reason": "Reduced clinic hours"
-}
-```
-
-### 🎯 Simplified Shrinking Logic
-- **Direct parameter checking**: Checks `new_start_time` and `new_end_time` directly
-- **Flexible shrinking**: Shrink from start, end, or both based on provided parameters
-- **Clean implementation**: No complex enum-based logic
-- **Clear comments**: Simple, easy-to-understand code structure
-
-### 🎯 FCFS (First Come First Serve) Logic
-- **Automatic rescheduling** when slots are removed or modified
-- **Priority-based redistribution** based on original booking time
-- **Multi-level hierarchy** maintenance during rescheduling
-- **Patient notification** system for schedule changes
-
-## 🏗️ Database Schema
-
-### Core Entities
-- **Users**: Base user authentication and profile
-- **Doctors**: Medical professionals with specializations
-- **Patients**: Patient profiles and medical history
-- **Appointments**: Booking records with status tracking
-- **Doctor Availability**: Available consultation windows
-- **Doctor Time Slots**: Individual appointment slots
-
-### Entity Relationships
-```
-User (1:1) → Doctor
-User (1:1) → Patient
-Doctor (1:N) → DoctorAvailability
-DoctorAvailability (1:N) → DoctorTimeSlot
-DoctorTimeSlot (1:N) → Appointment
-Patient (1:N) → Appointment
-```
-
-### Simplified Migration Structure
-
-The database now uses a single, comprehensive migration for the complete schema:
+Create a `.env` file in the project root:
 
 ```bash
-# Single migration creates entire schema
-npm run migration:run
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=your_postgres_username
+DB_PASSWORD=your_postgres_password
+DB_DATABASE=schedula_db
 
-# Rollback (drops entire schema)
-npm run migration:revert
+# Application Configuration
+NODE_ENV=development
+PORT=3000
 
-# Generate new migration when entities change
-npm run migration:generate ./src/migrations/YourMigrationName
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=24h
 ```
 
-### Migration Benefits
-- **Single source of truth**: One migration creates complete schema
-- **Faster setup**: New environments need only one migration
-- **Clean history**: No obsolete or redundant migrations
-- **Easy maintenance**: Single file to update for schema changes
+### Production Environment Variables
+
+For Render deployment, set these environment variables:
+
+```bash
+DB_HOST=your_render_postgres_host
+DB_PORT=5432
+DB_PGUSERNAME=your_render_postgres_username
+DB_PGPASSWORD=your_render_postgres_password
+DB_DATABASE=your_render_database_name
+NODE_ENV=production
+PORT=3000
+JWT_SECRET=your_production_jwt_secret
+JWT_EXPIRES_IN=24h
+```
+
+## 📋 API Testing with Postman
+
+### Import Collection
+
+1. **Download the Postman Collection**
+   - File: `Schedula - Doctor Appointment Booking API Copy.postman_collection.json`
+   - Located in the repository root
+
+2. **Import to Postman**
+   - Open Postman
+   - Click "Import" → "Upload Files"
+   - Select the collection file
+
+3. **Configure Environment**
+   - Create new environment in Postman
+   - Set base URL: `https://pearlthoughts-backend-internship.onrender.com` (production)
+   - Or: `http://localhost:3000` (local development)
+
+### Authentication Flow
+
+1. **Register a Patient**
+   ```json
+   POST /api/auth/patient/register
+   {
+     "full_name": "John Doe",
+     "email": "john@example.com",
+     "password": "password123",
+     "phone": "1234567890"
+   }
+   ```
+
+2. **Register a Doctor**
+   ```json
+   POST /api/auth/doctor/register
+   {
+     "full_name": "Dr. Jane Smith",
+     "email": "doctor@example.com",
+     "password": "password123",
+     "phone": "9876543210",
+     "education": "MBBS, MD",
+     "specialization": "Cardiology",
+     "experience_years": 10,
+     "clinic_name": "Heart Care Clinic",
+     "clinic_address": "123 Medical Street"
+   }
+   ```
+
+3. **Login**
+   ```json
+   POST /api/auth/login
+   {
+     "email": "john@example.com",
+     "password": "password123"
+   }
+   ```
+
+4. **Use JWT Token**
+   - Copy the token from login response
+   - Set as Bearer Token in Authorization header
+   - Use for all authenticated endpoints
+
+## 💡 Usage Examples
+
+### Creating Doctor Availability
+
+```json
+POST /api/doctors/{doctorId}/availability
+Authorization: Bearer {jwt_token}
+
+{
+  "date": "2024-01-15",
+  "consulting_start_time": "09:00",
+  "consulting_end_time": "17:00",
+  "session": "FULL_DAY",
+  "booking_start_at": "2024-01-10T00:00:00Z",
+  "booking_end_at": "2024-01-14T23:59:59Z"
+}
+```
+
+### Creating Time Slots
+
+```json
+POST /api/doctors/{doctorId}/slots
+Authorization: Bearer {jwt_token}
+
+{
+  "availability_id": 1,
+  "start_time": "09:00",
+  "end_time": "09:30",
+  "max_patients": 1
+}
+```
+
+### Booking an Appointment
+
+```json
+POST /api/v1/appointments/new
+Authorization: Bearer {jwt_token}
+
+{
+  "time_slot_id": 1,
+  "reason": "Regular checkup",
+  "notes": "Annual health examination"
+}
+```
+
+### Unified Rescheduling Operations
+
+#### Slot-to-Slot Movement
+```json
+POST /api/doctors/{doctorId}/reschedule
+Authorization: Bearer {jwt_token}
+
+{
+  "operation_type": "SLOT_TO_SLOT",
+  "appointment_ids": [1, 2],
+  "target_slot_id": 5
+}
+```
+
+#### Time Shift Operation
+```json
+POST /api/doctors/{doctorId}/reschedule
+Authorization: Bearer {jwt_token}
+
+{
+  "operation_type": "TIME_SHIFT",
+  "appointment_ids": [1, 2, 3],
+  "shift_minutes": 30
+}
+```
+
+#### Schedule Shrinking
+```json
+POST /api/doctors/{doctorId}/reschedule
+Authorization: Bearer {jwt_token}
+
+{
+  "operation_type": "SCHEDULE_SHRINKING",
+  "shrink_type": "BOTH_END",
+  "shrink_minutes": 60,
+  "availability_ids": [1, 2]
+}
+```
+
+## 🔥 Advanced Features
+
+### 1. First-Come-First-Serve (FCFS) System
+- **Automatic Capacity Management**: Real-time slot status updates
+- **Booking Window Validation**: Prevents last-minute bookings
+- **Conflict Resolution**: Handles double-booking attempts
+
+### 2. Unified Rescheduling API
+- **Parameter-driven Operations**: Single endpoint for multiple operations
+- **Transaction Safety**: Database-level consistency
+- **Bulk Operations**: Handle multiple appointments simultaneously
+
+### 3. Smart Status Management
+- **Automatic Status Updates**: Based on capacity and bookings
+- **Real-time Availability**: Live slot status tracking
+- **Cascade Operations**: Related entity updates
+
+### 4. Role-based Security
+- **JWT Authentication**: Secure token-based auth
+- **Route Guards**: Endpoint-level protection
+- **Role Validation**: Operation-specific permissions
+
+## 📁 Project Structure
+
+```
+doctor-appointment-booking/
+├── 📄 README.md
+├── 📄 package.json
+├── 📄 .env.example
+├── 📄 nest-cli.json
+├── 📄 tsconfig.json
+├── 📁 src/
+│   ├── 📄 main.ts                 # Application entry point
+│   ├── 📄 app.module.ts           # Root module
+│   ├── 📄 data-source.ts          # TypeORM configuration
+│   ├── 📁 auth/                   # Authentication module
+│   │   ├── 📄 auth.controller.ts
+│   │   ├── 📄 auth.service.ts
+│   │   ├── 📄 auth.module.ts
+│   │   ├── 📁 dto/                # Data transfer objects
+│   │   ├── 📁 entities/           # User entity
+│   │   ├── 📁 guards/             # Auth guards
+│   │   └── 📁 strategies/         # JWT strategy
+│   ├── 📁 doctors/                # Doctor management
+│   │   ├── 📄 doctor.controller.ts
+│   │   ├── 📄 doctor.service.ts
+│   │   ├── 📄 doctor.module.ts
+│   │   ├── 📁 dto/                # Doctor DTOs
+│   │   ├── 📁 entities/           # Doctor entities
+│   │   ├── 📁 enums/              # Doctor enums
+│   │   └── 📁 services/           # Schedule service
+│   ├── 📁 patients/               # Patient management
+│   │   ├── 📄 patient.controller.ts
+│   │   ├── 📄 patient.service.ts
+│   │   ├── 📄 patient.module.ts
+│   │   ├── 📁 dto/                # Patient DTOs
+│   │   └── 📁 entities/           # Patient entity
+│   ├── 📁 appointments/           # Appointment system
+│   │   ├── 📄 appointment.controller.ts
+│   │   ├── 📄 appointment.service.ts
+│   │   ├── 📄 appointment.module.ts
+│   │   ├── 📁 dto/                # Appointment DTOs
+│   │   ├── 📁 entities/           # Appointment entity
+│   │   └── 📁 enums/              # Status enums
+│   ├── 📁 common/                 # Shared utilities
+│   │   └── 📁 utils/              # Time utilities
+│   └── 📁 migrations/             # Database migrations
+├── 📁 test/                       # Test files
+└── 📄 Schedula - Doctor Appointment Booking API Copy.postman_collection.json
+```
+
+## 🔧 Available Scripts
+
+```bash
+# Development
+npm run start:dev          # Start development server with hot reload
+npm run start:debug        # Start with debug mode
+
+# Production
+npm run build              # Build for production
+npm run start:prod         # Start production server
+
+# Database
+npm run migration:generate # Generate new migration
+npm run migration:run      # Run migrations
+npm run migration:revert   # Revert last migration
+
+# Testing
+npm run test               # Run unit tests
+npm run test:e2e           # Run end-to-end tests
+npm run test:cov           # Run tests with coverage
+
+# Code Quality
+npm run lint               # Run ESLint
+npm run format             # Format code with Prettier
+```
 
 
+---
 
+<div align="center">
 
+**🏥 Schedula - Making Healthcare Accessible** 
 
+Built with ❤️ by Binary Bandits Team
 
+[🔗 Live Demo](https://pearlthoughts-backend-internship.onrender.com) | [📂 GitHub](https://github.com/Niketan2004/PearlThoughts-Backend-Internship) | [📋 API Collection](./Schedula%20-%20Doctor%20Appointment%20Booking%20API%20Copy.postman_collection.json)
+
+</div>

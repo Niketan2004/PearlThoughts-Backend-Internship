@@ -484,7 +484,6 @@ npm run format             # Format code with Prettier
 
 **🏥 Schedula - Making Healthcare Accessible** 
 
-Built with ❤️ by Binary Bandits Team
 
 [🔗 Live Demo](https://pearlthoughts-backend-internship.onrender.com) | [📂 GitHub](https://github.com/Niketan2004/PearlThoughts-Backend-Internship) | [📋 API Collection](./Schedula%20-%20Doctor%20Appointment%20Booking%20API%20Copy.postman_collection.json)
 
